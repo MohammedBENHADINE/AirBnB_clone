@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import uuid
 from datetime import datetime
+from models import storage
 """
 Module that defines a Class BaseModel
 """
@@ -29,6 +30,7 @@ class BaseModel:
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
+            storage.new(self)
         else:
             for key, value in kwargs.items():
                 if (key != '__class__'):
@@ -41,12 +43,13 @@ class BaseModel:
     def save(self):
         """Update the instance"""
         self.updated_at = datetime.now()
+        storage.save()
 
     def to_dict(self):
         """Serialiization process
         create a dict representation with "simple object type" of BaseModel
         """
-        newdict = self.__dict__
+        newdict = dict(self.__dict__)
         newdict['created_at'] = datetime.isoformat(self.created_at)
         newdict['updated_at'] = datetime.isoformat(self.updated_at)
         newdata = {'__class__': self.__class__.__name__}
