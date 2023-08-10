@@ -1,4 +1,5 @@
 import json
+import os.path
 """
 Module that implements the Class FileStorage
 """
@@ -18,27 +19,32 @@ class FileStorage:
         save (self): serializes __objects to the JSON file
         reload (self): deserializes the JSON file to __objects
     """
-    def __init__(self):
-        self.__file_path = "file.json"
-        self.__objects = {}
+    __file_path = "file.json"
+    __objects = {}
 
     def all(self):
+        """returns the dict __objects"""
         return self.__objects
 
     def new(self, obj):
         """sets in __objects the obj with key <obj class name>.id"""
-        newobj = {'{}.{}'.format(obj.__class__.__name__, obj.id): print(obj)}
-        self.__objects.update(newobj)
+        newkey = '{}.{}'.format(obj.__class__.__name__, obj.id)
+        self.__objects[newkey] = obj
 
     def save(self):
         """serializes __objects to the JSON file"""
-        print(self.__file_path)
+        serialized_objs = {
+                key: obj.to_dict() for key, obj in self.__objects.items()
+                }
         with open(self.__file_path, 'w') as fp:
-            json.dump(self.__objects, fp)
+            json.dump(serialized_objs, fp)
 
     def reload(self):
         """deserializes the JSON file to __objects"""
-        if self.__file_path != "":
+        if os.path.isfile(self.__file_path):
             with open(self.__file_path) as fp:
-                self.__objects = json.load(fp)
-
+                serialized_objs = json.load(fp)
+                from models.base_model import BaseModel
+                for key, obj in serialized_objs.items():
+                    if obj is not None:
+                        self.__objects[key] = BaseModel(**obj)
